@@ -1,5 +1,4 @@
 flask
-flask-mysqldb
 flask-cors
 gunicorn
-pymysql
+pysycopg2-binary

@@ -1,11 +1,15 @@
 from flask import Blueprint, request
 from werkzeug.security import generate_password_hash, check_password_hash
+import psycopg2
+import os
 
 auth = Blueprint('auth', __name__)
 
-def init_mysql(mysql_instance):
-    global mysql
-    mysql = mysql_instance
+# ✅ PostgreSQL connection
+DATABASE_URL = os.environ.get("DATABASE_URL")
+conn = psycopg2.connect(DATABASE_URL)
+conn.autocommit = True
+
 
 @auth.route('/register', methods=['POST'])
 def register():
@@ -18,9 +22,9 @@ def register():
     email = data.get('email')
     password = generate_password_hash(data.get('password'))
 
-    cur = mysql.connection.cursor()
+    cur = conn.cursor()
 
-    # Check if user already exists
+    # 🔍 Check if user exists
     cur.execute("SELECT * FROM users WHERE email=%s", (email,))
     existing = cur.fetchone()
 
@@ -29,13 +33,14 @@ def register():
 
     try:
         cur.execute(
-            "INSERT INTO users(name, email, password) VALUES (%s, %s, %s)",
+            "INSERT INTO users (name, email, password) VALUES (%s, %s, %s)",
             (name, email, password)
-            )
-        mysql.connection.commit()
+        )
         return {"message": "User registered successfully"}
+
     except Exception as e:
         return {"error": str(e)}, 500
+
 
 @auth.route('/login', methods=['POST'])
 def login():
@@ -47,7 +52,7 @@ def login():
     email = data['email']
     password = data['password']
 
-    cur = mysql.connection.cursor()
+    cur = conn.cursor()
     cur.execute("SELECT * FROM users WHERE email=%s", (email,))
     user = cur.fetchone()
 
@@ -57,4 +62,4 @@ def login():
             "user_id": user[0]
         }
     else:
-        return {"message": "Invalid credentials"} 
+        return {"message": "Invalid credentials"}
