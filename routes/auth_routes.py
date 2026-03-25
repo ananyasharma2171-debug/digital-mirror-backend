@@ -1,3 +1,5 @@
+from services.otp_service import generate_otp, verify_otp
+from flask_mail import Message
 from flask import Blueprint, request
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
@@ -63,3 +65,32 @@ def login():
         }
     else:
         return {"message": "Invalid credentials"}
+
+@auth.route('/send-otp', methods=['POST'])
+def send_otp():
+    data = request.json
+    email = data.get('email')
+
+    otp = generate_otp(email)
+
+    msg = Message(
+        'Your OTP Code',
+        sender='yourgmail@gmail.com',
+        recipients=[email]
+    )
+    msg.body = f'Your OTP is {otp}'
+
+    email.send(msg)
+
+    return {"message": "OTP sent"}
+
+@auth.route('/verify-otp', methods=['POST'])
+def verify_otp_route():
+    data = request.json
+    email = data.get('email')
+    otp = data.get('otp')
+
+    if verify_otp(email, otp):
+        return {"message": "OTP verified"}, 200
+    else:
+        return {"message": "Invalid OTP"}, 400
