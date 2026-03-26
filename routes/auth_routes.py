@@ -70,18 +70,18 @@ def login():
 @auth.route('/send-otp', methods=['POST'])
 def send_otp():
     data = request.json
-    user_email = data.get('email')
+    email = data.get('email')
 
-    otp = generate_otp(user_email)
+    otp = generate_otp(email)
 
     msg = Message(
         'Your OTP Code',
-        sender='yourgmail@gmail.com',
-        recipients=[user_email]
+        sender='ananyasharma2171@gmail.com',
+        recipients=[email]
     )
     msg.body = f'Your OTP is {otp}'
 
-    mail = current_app.extensions['mail'] 
+    mail = current_app.extensions['mail']
     mail.send(msg)
 
     return {"message": "OTP sent"}
