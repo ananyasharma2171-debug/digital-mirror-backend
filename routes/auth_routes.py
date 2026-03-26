@@ -2,6 +2,7 @@ from services.otp_service import generate_otp, verify_otp
 from flask_mail import Message
 from flask import Blueprint, request
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import current_app
 import psycopg2
 import os
 
@@ -69,18 +70,19 @@ def login():
 @auth.route('/send-otp', methods=['POST'])
 def send_otp():
     data = request.json
-    email = data.get('email')
+    user_email = data.get('email')
 
-    otp = generate_otp(email)
+    otp = generate_otp(user_email)
 
     msg = Message(
         'Your OTP Code',
         sender='yourgmail@gmail.com',
-        recipients=[email]
+        recipients=[user_email]
     )
     msg.body = f'Your OTP is {otp}'
 
-    email.send(msg)
+    mail = current_app.extensions['mail'] 
+    mail.send(msg)
 
     return {"message": "OTP sent"}
 
