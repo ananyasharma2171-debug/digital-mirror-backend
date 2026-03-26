@@ -77,11 +77,12 @@ def send_otp():
     msg = Message(
         'Your OTP Code',
         sender='ananyasharma2171@gmail.com',
-        recipients=[email]
+        recipients=['ananyasharma2171@gmail.com']
     )
     msg.body = f'Your OTP is {otp}'
 
-    email.send(msg)
+    mail = current_app.extensions['mail']
+    mail.send(msg)
 
     return {"message": "OTP sent"}
 
