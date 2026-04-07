@@ -2,7 +2,7 @@ from services.otp_service import generate_otp, save_otp, verify_otp
 from flask import Blueprint, request
 from werkzeug.security import generate_password_hash, check_password_hash
 import psycopg2
-import resend
+import requests
 import os
 
 auth = Blueprint('auth', __name__)
@@ -12,7 +12,21 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 conn = psycopg2.connect(DATABASE_URL)
 conn.autocommit = True
 
-resend.api_key = os.environ.get("RESEND_API_KEY")
+def send_otp_email(email, otp):
+    response = requests.post(
+        "https://api.brevo.com/v3/smtp/email",
+        headers={
+            "api-key": os.environ.get("BREVO_API_KEY"),
+            "Content-Type": "application/json"
+        },
+        json={
+            "sender": {"name": "Digital Mirror", "email": "ananyasharma2171@gmail.com"},
+            "to": [{"email": email}],
+            "subject": "Your OTP Code",
+            "textContent": f"Your OTP is {otp}. It expires in 5 minutes."
+        }
+    )
+    return response
 
 @auth.route('/register', methods=['POST'])
 def register():
@@ -72,8 +86,6 @@ def login():
     else:
         return {"message": "Invalid credentials"}
 
-
-
 @auth.route('/send-otp', methods=['POST'])
 def send_otp():
     data = request.get_json()
@@ -82,12 +94,7 @@ def send_otp():
     otp = generate_otp()
     save_otp(email, otp)
 
-    resend.Emails.send({
-        "from": "onboarding@resend.dev",  # use this until you verify a domain
-        "to": email,
-        "subject": "Your OTP Code",
-        "text": f"Your OTP is {otp}. It expires in 5 minutes."
-    })
+    send_otp_email(email, otp)
 
     return {"message": "OTP sent"}
 
