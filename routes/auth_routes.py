@@ -3,6 +3,7 @@ from flask_mail import Message
 from flask import Blueprint, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
+from app import mail
 import psycopg2
 import os
 
