@@ -1,4 +1,4 @@
-from services.otp_service import generate_otp, verify_otp
+from services.otp_service import generate_otp, save_otp, verify_otp
 from flask_mail import Message
 from flask import Blueprint, request
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -24,6 +24,11 @@ def register():
     name = data.get('name')
     email = data.get('email')
     password = generate_password_hash(data.get('password'))
+    user_otp = data.get('otp')   # ✅ ADD THIS
+
+    # 🔴 OTP CHECK (MOST IMPORTANT LINE)
+    if not verify_otp(email, user_otp):
+        return {"error": "OTP not verified or expired"}, 400
 
     cur = conn.cursor()
 
@@ -69,30 +74,30 @@ def login():
 
 @auth.route('/send-otp', methods=['POST'])
 def send_otp():
-    data = request.json
+    data = request.get_json()
     email = data.get('email')
 
-    otp = generate_otp(email)
+    otp = generate_otp()
+    save_otp(email, otp)
 
     msg = Message(
         'Your OTP Code',
-        sender='ananyasharma2171@gmail.com',
-        recipients=['ananyasharma2171@gmail.com']
+        sender=current_app.config['MAIL_USERNAME'],
+        recipients=[email]
     )
     msg.body = f'Your OTP is {otp}'
 
-    mail = current_app.extensions['mail']
-    mail.send(msg)
+    current_app.extensions['mail'].send(msg)
 
     return {"message": "OTP sent"}
 
 @auth.route('/verify-otp', methods=['POST'])
-def verify_otp_route():
-    data = request.json
+def verify():
+    data = request.get_json()
     email = data.get('email')
     otp = data.get('otp')
 
     if verify_otp(email, otp):
-        return {"message": "OTP verified"}, 200
+        return {"message": "OTP verified"}
     else:
-        return {"message": "Invalid OTP"}, 400
+        return {"error": "Invalid or expired OTP"}, 400
