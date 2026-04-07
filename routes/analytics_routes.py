@@ -7,14 +7,15 @@ from services.analytics_service import (
 
 analytics = Blueprint('analytics', __name__)
 
-def init_mysql(mysql_instance):
-    global mysql
-    mysql = mysql_instance
+import psycopg2, os
+DATABASE_URL = os.environ.get("DATABASE_URL")
+conn = psycopg2.connect(DATABASE_URL)
+conn.autocommit = True
 
 
 @analytics.route('/life-lost/<int:user_id>', methods=['GET'])
 def life_lost(user_id):
-    cur = mysql.connection.cursor()
+    cur = conn.cursor()
     cur.execute("SELECT hours FROM user_usage WHERE user_id=%s", (user_id,))
     data = cur.fetchall()
 
@@ -23,7 +24,7 @@ def life_lost(user_id):
 
 @analytics.route('/money-lost/<int:user_id>/<int:rate>', methods=['GET'])
 def money_lost(user_id, rate):
-    cur = mysql.connection.cursor()
+    cur = conn.cursor()
     cur.execute("SELECT hours FROM user_usage WHERE user_id=%s", (user_id,))
     data = cur.fetchall()
 
@@ -32,7 +33,7 @@ def money_lost(user_id, rate):
 
 @analytics.route('/future-projection/<int:user_id>/<int:years>/<int:rate>', methods=['GET'])
 def future_projection(user_id, years, rate):
-    cur = mysql.connection.cursor()
+    cur = conn.cursor()
     cur.execute("SELECT hours FROM user_usage WHERE user_id=%s", (user_id,))
     data = cur.fetchall()
 
@@ -40,7 +41,7 @@ def future_projection(user_id, years, rate):
 
 @analytics.route('/daily-average/<int:user_id>', methods=['GET'])
 def daily_average(user_id):
-    cur = mysql.connection.cursor()
+    cur = conn.cursor()
     cur.execute("SELECT hours FROM user_usage WHERE user_id=%s", (user_id,))
     data = cur.fetchall()
 

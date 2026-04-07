@@ -18,7 +18,7 @@ def verify_otp(email, user_otp):
     if not data:
         return False
 
-    # expire after 5 minutes
+    # Expire after 5 minutes
     if time.time() - data["time"] > 300:
         return False
 

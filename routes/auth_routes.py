@@ -88,7 +88,7 @@ def send_otp():
     )
     msg.body = f'Your OTP is {otp}'
 
-    current_app.extensions['mail'].send(msg)
+    mail.send(msg)
 
     return {"message": "OTP sent"}
 
