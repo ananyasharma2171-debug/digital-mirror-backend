@@ -12,6 +12,7 @@ DATABASE_URL = os.environ.get("DATABASE_URL")
 conn = psycopg2.connect(DATABASE_URL)
 conn.autocommit = True
 
+resend.api_key = os.environ.get("RESEND_API_KEY")
 
 @auth.route('/register', methods=['POST'])
 def register():
@@ -71,7 +72,7 @@ def login():
     else:
         return {"message": "Invalid credentials"}
 
-resend.api_key = os.environ.get("RESEND_API_KEY")
+
 
 @auth.route('/send-otp', methods=['POST'])
 def send_otp():

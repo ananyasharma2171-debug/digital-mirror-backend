@@ -2,22 +2,12 @@ from flask import Flask
 from flask_cors import CORS
 import os
 import psycopg2
-from flask_mail import Mail, Message
 
 def get_conn():
     return psycopg2.connect(os.environ.get("DATABASE_URL"))
 
 app = Flask(__name__)
 CORS(app)
-
-app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER')
-app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 465))
-app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS') == 'False'
-app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL') == 'True'
-app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-
-mail = Mail(app)
 
 # ✅ PostgreSQL connection
 DATABASE_URL = os.environ.get("DATABASE_URL")
