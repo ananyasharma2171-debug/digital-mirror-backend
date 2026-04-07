@@ -2,5 +2,4 @@ flask
 flask-cors
 gunicorn
 psycopg2-binary
-flask-mail
-Flask-Mail
+resend

@@ -1,10 +1,8 @@
 from services.otp_service import generate_otp, save_otp, verify_otp
-from flask_mail import Message
 from flask import Blueprint, request
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import current_app
-from app import mail
 import psycopg2
+import resend
 import os
 
 auth = Blueprint('auth', __name__)
@@ -73,6 +71,8 @@ def login():
     else:
         return {"message": "Invalid credentials"}
 
+resend.api_key = os.environ.get("RESEND_API_KEY")
+
 @auth.route('/send-otp', methods=['POST'])
 def send_otp():
     data = request.get_json()
@@ -81,14 +81,12 @@ def send_otp():
     otp = generate_otp()
     save_otp(email, otp)
 
-    msg = Message(
-        'Your OTP Code',
-        sender=current_app.config['MAIL_USERNAME'],
-        recipients=[email]
-    )
-    msg.body = f'Your OTP is {otp}'
-
-    mail.send(msg)
+    resend.Emails.send({
+        "from": "onboarding@resend.dev",  # use this until you verify a domain
+        "to": email,
+        "subject": "Your OTP Code",
+        "text": f"Your OTP is {otp}. It expires in 5 minutes."
+    })
 
     return {"message": "OTP sent"}
 
